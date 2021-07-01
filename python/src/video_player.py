@@ -40,23 +40,25 @@ class VideoPlayer:
     def play_video(self, video_id):
         index=-1
         video= self._video_library.get_video(video_id)                                          #getting the video from the library
-        if video.flag != None:
-             print("Cannot play video: Video is currently flagged (reason: "+ video.flag +")")
-        check=self.player_status
-        previous_video = self.current_video
-        if(self.player_status==0):                                                              #if no video is playing, set status to playing
-            self.player_status = 1
-            check=0
-        if (video_id == "<amazing_cats_video_id>" or video_id == "amazing_cats_video_id"):
-            self.current_video = "Amazing Cats"
-        elif (video_id == "<funny_dogs_video_id>" or video_id == "funny_dogs_video_id"):
-            self.current_video = "Funny Dogs"
-        elif (video_id == "<another_cat_video_id>" or video_id == "another_cat_video_id"):
-            self.current_video = "Another Cat Video"
-        elif (video_id == "<life_at_google_video_id>" or video_id == "life_at_google_video_id"):
-            self.current_video = "Life at Google"
-        elif (video_id == "<nothing_video_id>" or video_id == "nothing_video_id"):
-            self.current_video = "Video about nothing"
+        if video != None:
+            if video.flag != None:
+                print("Cannot play video: Video is currently flagged (reason: "+ video.flag +")")
+                return
+            check=self.player_status
+            previous_video = self.current_video
+            if(self.player_status==0):                                                              #if no video is playing, set status to playing
+                self.player_status = 1
+                check=0
+            if (video_id == "<amazing_cats_video_id>" or video_id == "amazing_cats_video_id"):
+                self.current_video = "Amazing Cats"
+            elif (video_id == "<funny_dogs_video_id>" or video_id == "funny_dogs_video_id"):
+                self.current_video = "Funny Dogs"
+            elif (video_id == "<another_cat_video_id>" or video_id == "another_cat_video_id"):
+                self.current_video = "Another Cat Video"
+            elif (video_id == "<life_at_google_video_id>" or video_id == "life_at_google_video_id"):
+                self.current_video = "Life at Google"
+            elif (video_id == "<nothing_video_id>" or video_id == "nothing_video_id"):
+                self.current_video = "Video about nothing"
         else:
             print("Cannot play video: Video does not exist")
             self.player_status=0
@@ -76,14 +78,17 @@ class VideoPlayer:
 
     def play_random_video(self):
         videos= self._video_library.get_all_videos()
+        if len([x for x in videos if x.flag == None]) == 0:
+            print("No videos available")
+            return
         check =0
         rand= randint(0,4)
-        while(check!=1):
+        while(check==0):
             video= getattr(videos[rand],'video_id')                                            #check if the randomly chosen video is not flagged
-            if video.flag != None:
+            v= self._video_library.get_video(video)
+            if v.flag == None:
                 check= 1
         index=-1
-        video = "<"+video+">"
         self.play_video(video)
 
     def pause_video(self):                                                       
@@ -131,35 +136,45 @@ class VideoPlayer:
             print("Cannot create playlist: A playlist with the same name already exists")
 
     def add_to_playlist(self, playlist_name, video_id):
+        vidflag=0
         video= self._video_library.get_video(video_id)
-        if(video.flag!=None):                                                               #checking if the video is flagged
-            print("Cannot play video: Video is currently flagged (reason:",video.flag)
-            return
-        index=-1
-        count=-1
-        flag=0
-        for playlist in self._playlist:
-            count+=1
-            if playlist_name.lower() == playlist.playlist_name.lower():
-                index=count
-                flag=1
-                for x in playlist.playlist_videos:
-                    if x == video_id:
-                        print("Cannot add video to",playlist_name+": Video already added") #checking if the video is already added
-                        return
-        if flag !=1:
-            print("Cannot add video to",playlist_name,": Playlist does not exist")         #checking the existence of the playlist
-        if (video_id == "<amazing_cats_video_id>" or video_id == "amazing_cats_video_id"):
-            print("Added video to",playlist_name+": Amazing Cats")
-        elif (video_id == "<funny_dogs_video_id>" or video_id == "funny_dogs_video_id"):
-            print("Added video to",playlist_name+": Funny Dogs")
-        elif (video_id == "<another_cat_video_id>" or video_id == "another_cat_video_id"):
-            print("Added video to",playlist_name+": Another Cat Video")
-        elif (video_id == "<life_at_google_video_id>" or video_id == "life_at_google_video_id"):
-            print("Added video to",playlist_name+": Life at Google")
-        elif (video_id == "<nothing_video_id>" or video_id == "nothing_video_id"):
-            print("Added video to",playlist_name+": Video about nothing")
-        else:
+        if video != None:
+            vidflag=1
+            if(video.flag!=None):                                                               #checking if the video is flagged
+                print("Cannot add video: Video is currently flagged (reason:",video.flag+")")
+                return
+            index=-1
+            count=-1
+            flag=0
+            for playlist in self._playlist:
+                count+=1
+                if playlist_name.lower() == playlist.playlist_name.lower():
+                    index=count
+                    flag=1
+                    for x in playlist.playlist_videos:
+                        if x == video_id:
+                            print("Cannot add video to",playlist_name+": Video already added") #checking if the video is already added
+                            return
+           
+            if (video_id == "<amazing_cats_video_id>" or video_id == "amazing_cats_video_id"):
+                print("Added video to",playlist_name+": Amazing Cats")
+            elif (video_id == "<funny_dogs_video_id>" or video_id == "funny_dogs_video_id"):
+                print("Added video to",playlist_name+": Funny Dogs")
+            elif (video_id == "<another_cat_video_id>" or video_id == "another_cat_video_id"):
+                print("Added video to",playlist_name+": Another Cat Video")
+            elif (video_id == "<life_at_google_video_id>" or video_id == "life_at_google_video_id"):
+                print("Added video to",playlist_name+": Life at Google")
+            elif (video_id == "<nothing_video_id>" or video_id == "nothing_video_id"):
+                print("Added video to",playlist_name+": Video about nothing")
+        elif vidflag== 0:
+            check=0
+            for x in self._playlist:
+                if playlist_name == x.playlist_name:
+                    check=1
+                    break
+            if check == 0:
+                print("Cannot add video to",playlist_name+": Video already added") #checking if the video is already added
+                return
             print("Cannot add video to",playlist_name+": Video does not exist")
             return
         self._playlist[index].playlist_videos.append(video_id.strip('<>'))                  #adding video to the playlist
@@ -199,36 +214,38 @@ class VideoPlayer:
                     
 
     def remove_from_playlist(self, playlist_name, video_id):
-        flaglist=0
-        flagvid=0
-        # id= video_id.strip('<>')
-        id= video_id
-        for playlist in self._playlist:
-            if playlist_name.lower() == playlist.playlist_name.lower():
-                flaglist=1                                                                      #marking that the playlist exists
-                for x in playlist.playlist_videos:  
-                    if id == x:
-                        flagvid=1                                                               #marking that the video exists
-                        id=x
-                        break
-                if flagvid != 1:
-                    print("Cannot remove video from",playlist_name+": Video is not in playlist")
-                    return
-                playlist.playlist_videos.remove(id)
-                break
-        if flaglist !=1:
-            print("Cannot remove video from",playlist_name+": Playlist does not exist")
-            return
-        if (video_id == "<amazing_cats_video_id>" or video_id == "amazing_cats_video_id"):
-            print("Removed video from",playlist_name+": Amazing Cats")
-        elif (video_id == "<funny_dogs_video_id>" or video_id == "funny_dogs_video_id"):
-            print("Removed video from",playlist_name+": Funny Dogs")
-        elif (video_id == "<another_cat_video_id>" or video_id == "another_cat_video_id"):
-            print("Removed video from",playlist_name+": Another Cat Video")
-        elif (video_id == "<life_at_google_video_id>" or video_id == "life_at_google_video_id"):
-            print("Removed video from",playlist_name+": Life at Google")
-        elif (video_id == "<nothing_video_id>" or video_id == "nothing_video_id"):
-            print("Removed video from",playlist_name+": Video about nothing")
+        video= self._video_library.get_video(video_id)
+        if video != None:
+            flaglist=0
+            flagvid=0
+            # id= video_id.strip('<>')
+            id= video_id
+            for playlist in self._playlist:
+                if playlist_name.lower() == playlist.playlist_name.lower():
+                    flaglist=1                                                                      #marking that the playlist exists
+                    for x in playlist.playlist_videos:  
+                        if id == x:
+                            flagvid=1                                                               #marking that the video exists
+                            id=x
+                            break
+                    if flagvid != 1:
+                        print("Cannot remove video from",playlist_name+": Video is not in playlist")
+                        return
+                    playlist.playlist_videos.remove(id)
+                    break
+            if flaglist !=1:
+                print("Cannot remove video from",playlist_name+": Playlist does not exist")
+                return
+            if (video_id == "<amazing_cats_video_id>" or video_id == "amazing_cats_video_id"):
+                print("Removed video from",playlist_name+": Amazing Cats")
+            elif (video_id == "<funny_dogs_video_id>" or video_id == "funny_dogs_video_id"):
+                print("Removed video from",playlist_name+": Funny Dogs")
+            elif (video_id == "<another_cat_video_id>" or video_id == "another_cat_video_id"):
+                print("Removed video from",playlist_name+": Another Cat Video")
+            elif (video_id == "<life_at_google_video_id>" or video_id == "life_at_google_video_id"):
+                print("Removed video from",playlist_name+": Life at Google")
+            elif (video_id == "<nothing_video_id>" or video_id == "nothing_video_id"):
+                print("Removed video from",playlist_name+": Video about nothing")
         else:
             print("Cannot remove video from",playlist_name+": Video does not exist")
             return
@@ -316,7 +333,7 @@ class VideoPlayer:
             self.play_video(search_results[int(answer)-1])
 
     def flag_video(self, video_id, flag_reason=""):
-        video= self._video_library.get_video(video_id)
+        video= self._video_library.get_video(video_id.strip('<>'))
         if video == None:                                               #checking if the video exists
             print("Cannot flag video: Video does not exist")
             return
